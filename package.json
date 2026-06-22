@@ -1,4 +1,7 @@
 {
+	"scripts": {
+		"sandcastle": "pnpm dlx ./sandcastle/main.mts"
+	},
 	"devDependencies": {
 		"@ai-hero/sandcastle": "^0.10.0"
 	},
