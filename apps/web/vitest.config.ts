@@ -4,7 +4,7 @@ import styleXPlugin from '@stylexjs/babel-plugin'
 import path from 'node:path'
 import fs from 'node:fs'
 
-const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mts', '.mtsx']
+const EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts']
 
 function resolveStyleXImport(importPath: string, sourceFilePath: string): string | null {
   const dir = path.dirname(sourceFilePath)

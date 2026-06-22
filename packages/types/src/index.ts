@@ -1,50 +1,50 @@
 export interface Player {
-  id: number
-  name: string
-  team: string
-  position: string
+  readonly id: number
+  readonly name: string
+  readonly team: string
+  readonly position: string
 }
 
 export interface PlayerSeasonStats {
-  playerId: number
-  competitionId: number
-  seasonId: number
-  minutes: number
-  appearances: number
-  goals: number
-  assists: number
-  xG: number
-  xA: number
-  shots: number
-  shotsOnTarget: number
-  keyPasses: number
-  passesAttempted: number
-  passesCompleted: number
-  passCompletionPct: number
-  progressivePasses: number
-  carries: number
-  progressiveCarries: number
-  successfulDribbles: number
-  tackles: number
-  interceptions: number
-  ballRecoveries: number
-  pressures: number
+  readonly playerId: number
+  readonly competitionId: number
+  readonly seasonId: number
+  readonly minutes: number
+  readonly appearances: number
+  readonly goals: number
+  readonly assists: number
+  readonly xG: number
+  readonly xA: number
+  readonly shots: number
+  readonly shotsOnTarget: number
+  readonly keyPasses: number
+  readonly passesAttempted: number
+  readonly passesCompleted: number
+  readonly passCompletionPct: number
+  readonly progressivePasses: number
+  readonly carries: number
+  readonly progressiveCarries: number
+  readonly successfulDribbles: number
+  readonly tackles: number
+  readonly interceptions: number
+  readonly ballRecoveries: number
+  readonly pressures: number
 }
 
 export interface Competition {
-  competitionId: number
-  seasonId: number
+  readonly competitionId: number
+  readonly seasonId: number
 }
 
 export interface Team {
-  teamId: number
-  name: string
+  readonly teamId: number
+  readonly name: string
 }
 
 export interface Match {
-  matchId: number
-  competitionId: number
-  seasonId: number
-  homeTeamId: number
-  awayTeamId: number
+  readonly matchId: number
+  readonly competitionId: number
+  readonly seasonId: number
+  readonly homeTeamId: number
+  readonly awayTeamId: number
 }

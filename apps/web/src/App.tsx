@@ -1,14 +1,17 @@
 import * as stylex from '@stylexjs/stylex'
-import { colors, spacing } from './tokens.stylex.js'
+import { colors, fonts, spacing } from './tokens.stylex.js'
 
 const styles = stylex.create({
   root: {
     backgroundColor: colors.background,
+    color: colors.textPrimary,
+    fontFamily: fonts.body,
     minHeight: '100vh',
-    padding: spacing.lg,
+    padding: spacing.s6,
   },
   heading: {
     color: colors.primary,
+    fontFamily: fonts.display,
     margin: 0,
   },
 })
