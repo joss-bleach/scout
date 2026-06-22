@@ -56,3 +56,8 @@ export const PlayerSeasonStatsSchema = Schema.Struct({
   ballRecoveries: Schema.Int,
   pressures: Schema.Int,
 })
+
+// Compile-time guards: TypeScript errors here if the hand-rolled Effect schemas
+// drift from the Drizzle $inferSelect types (e.g. a column is added/renamed).
+true satisfies Schema.Schema.Type<typeof PlayerSchema> extends Player ? true : false
+true satisfies Schema.Schema.Type<typeof PlayerSeasonStatsSchema> extends PlayerSeasonStats ? true : false

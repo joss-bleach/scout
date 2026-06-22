@@ -11,5 +11,6 @@
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "bin"]
+  "exclude": ["node_modules", "bin"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

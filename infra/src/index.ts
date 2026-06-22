@@ -11,6 +11,7 @@ import {
   FIREBASE_CONFIG,
   RESOURCE_NAMES,
 } from './config'
+import { buildSaIamMemberArgs } from './iam'
 
 const gcpConfig = new pulumi.Config('gcp')
 const projectId = gcpConfig.require('project')
@@ -63,12 +64,10 @@ const runServiceAccount = new gcp.serviceaccount.Account(RESOURCE_NAMES.runServi
   displayName: 'Scout Cloud Run Service Account',
 })
 
-// Bindings are driven by CLOUD_RUN_SA_BINDINGS so the least-privilege test
-// in config.test.ts reflects what's actually granted.
-for (const { resourceName, role } of CLOUD_RUN_SA_BINDINGS) {
-  new gcp.projects.IAMMember(resourceName, {
-    project: projectId,
-    role,
+for (const args of buildSaIamMemberArgs('placeholder', projectId, CLOUD_RUN_SA_BINDINGS)) {
+  new gcp.projects.IAMMember(args.resourceName, {
+    project: args.project,
+    role: args.role,
     member: pulumi.interpolate`serviceAccount:${runServiceAccount.email}`,
   })
 }

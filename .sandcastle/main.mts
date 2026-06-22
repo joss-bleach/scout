@@ -43,15 +43,15 @@ const planSchema = z.object({
 // Raise this if your backlog is large; lower it for a quick smoke-test run.
 const MAX_ITERATIONS = 10;
 
-// Hooks run inside the sandbox before the agent starts each iteration.
-// npm install ensures the sandbox always has fresh dependencies.
-const hooks = {
-  sandbox: { onSandboxReady: [{ command: "npm install" }] },
-};
+// No onSandboxReady hook — skipping pnpm install inside the container avoids
+// the Linux/macOS binary conflict (github.com/mattpocock/sandcastle/issues/745).
+// Host node_modules are copied in as-is; agents can install packages themselves
+// if needed during a task.
+const hooks = {};
 
-// Copy node_modules from the host into the worktree before each sandbox
-// starts. Avoids a full npm install from scratch; the hook above handles
-// platform-specific binaries and any packages added since the last copy.
+// Copy host node_modules into the worktree so agents have deps available
+// without a full install. Works as long as we don't run pnpm install in the
+// container (which would overwrite macOS binaries with Linux ones).
 const copyToWorktree = ["node_modules"];
 
 // ---------------------------------------------------------------------------
