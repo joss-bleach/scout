@@ -9,20 +9,20 @@ import type {
 } from './schema.js'
 
 export {
-  competitions as competitionsTable,
-  teams as teamsTable,
-  players as playersTable,
-  matches as matchesTable,
-  rawEvents as rawEventsTable,
-  playerSeasonStats as playerSeasonStatsTable,
+  competitions,
+  teams,
+  players,
+  matches,
+  rawEvents,
+  playerSeasonStats,
 } from './schema.js'
 
-export type Competition = typeof competitions.$inferSelect
-export type Team = typeof teams.$inferSelect
-export type Player = typeof players.$inferSelect
-export type Match = typeof matches.$inferSelect
-export type RawEvent = typeof rawEvents.$inferSelect
-export type PlayerSeasonStats = typeof playerSeasonStats.$inferSelect
+export type Competition = Readonly<typeof competitions.$inferSelect>
+export type Team = Readonly<typeof teams.$inferSelect>
+export type Player = Readonly<typeof players.$inferSelect>
+export type Match = Readonly<typeof matches.$inferSelect>
+export type RawEvent = Readonly<typeof rawEvents.$inferSelect>
+export type PlayerSeasonStats = Readonly<typeof playerSeasonStats.$inferSelect>
 
 export const PlayerSchema = Schema.Struct({
   playerId: Schema.Int,
