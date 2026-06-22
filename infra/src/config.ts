@@ -1,54 +1,57 @@
-export const GCP_REGION = 'europe-west1' as const
+export const GCP_REGION = 'europe-west1'
 
 export const SQL_CONFIG = {
-  databaseVersion: 'POSTGRES_15' as const,
-  tier: 'db-f1-micro' as const,
+  databaseVersion: 'POSTGRES_15',
+  tier: 'db-f1-micro',
 } as const
 
 export const CLOUD_RUN_CONFIG = {
-  placeholderImage: 'us-docker.pkg.dev/cloudrun/container/hello:latest' as const,
-  memoryCap: '512Mi' as const,
-  cpuCap: '1' as const,
+  placeholderImage: 'us-docker.pkg.dev/cloudrun/container/hello:latest',
+  memoryCap: '512Mi',
+  cpuCap: '1',
 } as const
 
 export const ARTIFACT_REGISTRY_CONFIG = {
-  repositoryId: 'scout-images' as const,
+  repositoryId: 'scout-images',
 } as const
 
 export const WIF_CONFIG = {
-  poolId: 'scout-github-pool' as const,
-  providerId: 'github-oidc' as const,
-  githubOidcIssuer: 'https://token.actions.githubusercontent.com' as const,
-  githubRepo: 'joss-bleach/scout' as const,
+  poolId: 'scout-github-pool',
+  providerId: 'github-oidc',
+  githubOidcIssuer: 'https://token.actions.githubusercontent.com',
+  githubRepo: 'joss-bleach/scout',
 } as const
 
 export const IAM_ROLES = {
-  cloudSqlClient: 'roles/cloudsql.client' as const,
-  secretManagerAccessor: 'roles/secretmanager.secretAccessor' as const,
+  cloudSqlClient: 'roles/cloudsql.client',
+  secretManagerAccessor: 'roles/secretmanager.secretAccessor',
 } as const
 
-// Exhaustive list of roles granted to the Cloud Run service account.
-// Must remain exactly these two — no admin, editor, or owner roles.
-export const CLOUD_RUN_SA_ROLES = [
-  IAM_ROLES.cloudSqlClient,
-  IAM_ROLES.secretManagerAccessor,
+// Single source of truth for roles granted to the Cloud Run service account.
+// Each entry produces an IAMMember in index.ts; the test in config.test.ts
+// asserts no broad admin/editor/owner roles can be added without review.
+export const CLOUD_RUN_SA_BINDINGS = [
+  { resourceName: 'run-sa-sql-client', role: IAM_ROLES.cloudSqlClient },
+  { resourceName: 'run-sa-secret-accessor', role: IAM_ROLES.secretManagerAccessor },
 ] as const
 
+export const CLOUD_RUN_SA_ROLES: readonly string[] = CLOUD_RUN_SA_BINDINGS.map((b) => b.role)
+
 export const SECRET_NAMES = {
-  dbConnectionString: 'scout-db-connection-string' as const,
+  dbConnectionString: 'scout-db-connection-string',
 } as const
 
 export const FIREBASE_CONFIG = {
-  siteId: 'scout-web' as const,
+  siteId: 'scout-web',
 } as const
 
 export const RESOURCE_NAMES = {
-  sqlInstance: 'scout-db' as const,
-  sqlDatabase: 'scout' as const,
-  artifactRepo: 'scout-images' as const,
-  runServiceAccount: 'scout-run-sa' as const,
-  cloudRunService: 'scout-api' as const,
-  hostingSite: 'scout-hosting' as const,
-  wifPool: 'scout-github-pool' as const,
-  wifProvider: 'scout-github-provider' as const,
+  sqlInstance: 'scout-db',
+  sqlDatabase: 'scout',
+  artifactRepo: 'scout-images',
+  runServiceAccount: 'scout-run-sa',
+  cloudRunService: 'scout-api',
+  hostingSite: 'scout-hosting',
+  wifPool: 'scout-github-pool',
+  wifProvider: 'scout-github-provider',
 } as const

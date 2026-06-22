@@ -6,7 +6,7 @@ import {
   CLOUD_RUN_CONFIG,
   ARTIFACT_REGISTRY_CONFIG,
   WIF_CONFIG,
-  IAM_ROLES,
+  CLOUD_RUN_SA_BINDINGS,
   SECRET_NAMES,
   FIREBASE_CONFIG,
   RESOURCE_NAMES,
@@ -33,7 +33,7 @@ const sqlInstance = new gcp.sql.DatabaseInstance(RESOURCE_NAMES.sqlInstance, {
   deletionProtection: false,
 })
 
-const _sqlDatabase = new gcp.sql.Database(RESOURCE_NAMES.sqlDatabase, {
+new gcp.sql.Database(RESOURCE_NAMES.sqlDatabase, {
   instance: sqlInstance.name,
   name: RESOURCE_NAMES.sqlDatabase,
 })
@@ -63,19 +63,15 @@ const runServiceAccount = new gcp.serviceaccount.Account(RESOURCE_NAMES.runServi
   displayName: 'Scout Cloud Run Service Account',
 })
 
-// Grant only roles/cloudsql.client — no other SQL permissions
-const _runSaSqlBinding = new gcp.projects.IAMMember('run-sa-sql-client', {
-  project: projectId,
-  role: IAM_ROLES.cloudSqlClient,
-  member: pulumi.interpolate`serviceAccount:${runServiceAccount.email}`,
-})
-
-// Grant only roles/secretmanager.secretAccessor — no other Secret Manager permissions
-const _runSaSecretBinding = new gcp.projects.IAMMember('run-sa-secret-accessor', {
-  project: projectId,
-  role: IAM_ROLES.secretManagerAccessor,
-  member: pulumi.interpolate`serviceAccount:${runServiceAccount.email}`,
-})
+// Bindings are driven by CLOUD_RUN_SA_BINDINGS so the least-privilege test
+// in config.test.ts reflects what's actually granted.
+for (const { resourceName, role } of CLOUD_RUN_SA_BINDINGS) {
+  new gcp.projects.IAMMember(resourceName, {
+    project: projectId,
+    role,
+    member: pulumi.interpolate`serviceAccount:${runServiceAccount.email}`,
+  })
+}
 
 // ── 5. Cloud Run v2 service (placeholder image) ───────────────────────────────
 
@@ -105,7 +101,7 @@ const apiService = new gcp.cloudrunv2.Service(RESOURCE_NAMES.cloudRunService, {
 })
 
 // Allow public (unauthenticated) access so the frontend can call the API
-const _apiInvoker = new gcp.cloudrunv2.ServiceIamMember('scout-api-invoker', {
+new gcp.cloudrunv2.ServiceIamMember('scout-api-invoker', {
   name: apiService.name,
   location: GCP_REGION,
   role: 'roles/run.invoker',

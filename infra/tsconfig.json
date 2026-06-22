@@ -1,14 +1,12 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
     "module": "commonjs",
     "moduleResolution": "node",
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
     "outDir": "bin",
     "rootDir": "src"
   },
