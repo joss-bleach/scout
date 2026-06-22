@@ -1,50 +1,58 @@
-export interface Player {
-  readonly id: number
-  readonly name: string
-  readonly team: string
-  readonly position: string
-}
+import { Schema } from 'effect'
+import type {
+  competitions,
+  teams,
+  players,
+  matches,
+  rawEvents,
+  playerSeasonStats,
+} from './schema.js'
 
-export interface PlayerSeasonStats {
-  readonly playerId: number
-  readonly competitionId: number
-  readonly seasonId: number
-  readonly minutes: number
-  readonly appearances: number
-  readonly goals: number
-  readonly assists: number
-  readonly xG: number
-  readonly xA: number
-  readonly shots: number
-  readonly shotsOnTarget: number
-  readonly keyPasses: number
-  readonly passesAttempted: number
-  readonly passesCompleted: number
-  readonly passCompletionPct: number
-  readonly progressivePasses: number
-  readonly carries: number
-  readonly progressiveCarries: number
-  readonly successfulDribbles: number
-  readonly tackles: number
-  readonly interceptions: number
-  readonly ballRecoveries: number
-  readonly pressures: number
-}
+export {
+  competitions as competitionsTable,
+  teams as teamsTable,
+  players as playersTable,
+  matches as matchesTable,
+  rawEvents as rawEventsTable,
+  playerSeasonStats as playerSeasonStatsTable,
+} from './schema.js'
 
-export interface Competition {
-  readonly competitionId: number
-  readonly seasonId: number
-}
+export type Competition = typeof competitions.$inferSelect
+export type Team = typeof teams.$inferSelect
+export type Player = typeof players.$inferSelect
+export type Match = typeof matches.$inferSelect
+export type RawEvent = typeof rawEvents.$inferSelect
+export type PlayerSeasonStats = typeof playerSeasonStats.$inferSelect
 
-export interface Team {
-  readonly teamId: number
-  readonly name: string
-}
+export const PlayerSchema = Schema.Struct({
+  playerId: Schema.Int,
+  name: Schema.String,
+  teamId: Schema.Int,
+  position: Schema.NullOr(Schema.String),
+})
 
-export interface Match {
-  readonly matchId: number
-  readonly competitionId: number
-  readonly seasonId: number
-  readonly homeTeamId: number
-  readonly awayTeamId: number
-}
+export const PlayerSeasonStatsSchema = Schema.Struct({
+  playerId: Schema.Int,
+  competitionId: Schema.Int,
+  seasonId: Schema.Int,
+  minutes: Schema.Int,
+  appearances: Schema.Int,
+  goals: Schema.Int,
+  assists: Schema.Int,
+  xG: Schema.String,
+  xA: Schema.String,
+  shots: Schema.Int,
+  shotsOnTarget: Schema.Int,
+  keyPasses: Schema.Int,
+  passesAttempted: Schema.Int,
+  passesCompleted: Schema.Int,
+  passCompletionPct: Schema.String,
+  progressivePasses: Schema.Int,
+  carries: Schema.Int,
+  progressiveCarries: Schema.Int,
+  successfulDribbles: Schema.Int,
+  tackles: Schema.Int,
+  interceptions: Schema.Int,
+  ballRecoveries: Schema.Int,
+  pressures: Schema.Int,
+})
