@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.*
+!.env.example
+dist/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# GCP / Pulumi
+.pulumi/
+*.pem
+*.json.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private application docs
+docs/job.md
