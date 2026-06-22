@@ -1,0 +1,11 @@
+name: scout
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+description: Scout GCP infrastructure — Cloud SQL, Cloud Run, Firebase Hosting, Artifact Registry, Secret Manager, WIF
+config:
+  gcp:project:
+    default: scout-prod
+  gcp:region:
+    default: europe-west1
