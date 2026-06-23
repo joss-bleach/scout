@@ -68,6 +68,7 @@ const styles = stylex.create({
   },
   tr: {
     borderBottom: `1px solid ${colors.borderSubtle}`,
+    cursor: 'pointer',
     ':hover': {
       backgroundColor: colors.accentTint,
     },
@@ -178,6 +179,11 @@ export function PlayerTable({
                 <tr
                   key={player.playerId}
                   {...stylex.props(styles.tr, selected && styles.trSelected)}
+                  onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('input[type="checkbox"]')) return
+                    if (!selected && !canSelectMore) return
+                    onSelect(player.playerId)
+                  }}
                 >
                   <td {...stylex.props(styles.td)}>
                     <label {...stylex.props(styles.checkboxCell)}>

@@ -173,6 +173,17 @@ describe('PlayerBrowser', () => {
     expect(screen.getByRole('link', { name: /compare/i })).toBeTruthy()
   })
 
+  it('clicking a row selects the player without using the checkbox', async () => {
+    setupFetch(PLAYERS)
+    render(<PlayerBrowser />)
+    await waitFor(() => expect(screen.getByText('Harry Kane')).toBeTruthy())
+
+    fireEvent.click(screen.getByText('Harry Kane'))
+    fireEvent.click(screen.getByText('Dele Alli'))
+
+    expect(screen.getByRole('link', { name: /compare/i })).toBeTruthy()
+  })
+
   it('cannot select more than two players', async () => {
     setupFetch(PLAYERS)
     render(<PlayerBrowser />)
