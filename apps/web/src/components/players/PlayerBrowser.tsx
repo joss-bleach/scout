@@ -1,60 +1,82 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as stylex from '@stylexjs/stylex'
-import { colors, fonts, spacing, rounded, shadow } from '../../tokens.stylex.js'
+import { colors, fonts, spacing } from '../../tokens.stylex.js'
+import { PlayerFilters } from './PlayerFilters.js'
+import { PlayerTable, COLUMNS } from './PlayerTable.js'
+import { CompareBar } from './CompareBar.js'
 
 export type PlayerRow = {
-  playerId: number
-  name: string
-  teamName: string
-  position: string | null
-  minutes: number
-  xGPer90: number
-  xAPer90: number
-  goalsPer90: number
-  keyPassesPer90: number
-  tacklesPer90: number
+  readonly playerId: number
+  readonly name: string
+  readonly teamName: string
+  readonly position: string | null
+  readonly minutes: number
+  readonly xGPer90: number
+  readonly xAPer90: number
+  readonly goalsPer90: number
+  readonly keyPassesPer90: number
+  readonly tacklesPer90: number
 }
 
-type SortColumn = 'name' | 'teamName' | 'position' | 'minutes' | 'xGPer90' | 'xAPer90' | 'goalsPer90' | 'keyPassesPer90' | 'tacklesPer90'
-type SortDir = 'ascending' | 'descending'
+export type SortColumn = (typeof COLUMNS)[number]['key']
+export type SortDir = 'ascending' | 'descending'
 
-function readParams() {
-  if (typeof window === 'undefined') return {}
+const MAX_SELECTED = 2
+
+type UrlState = {
+  position: string
+  team: string
+  minMinutes: string
+  sortCol: SortColumn
+  sortDir: SortDir
+}
+
+function isSortColumn(value: string | null): value is SortColumn {
+  return value !== null && COLUMNS.some((c) => c.key === value)
+}
+
+function isSortDir(value: string | null): value is SortDir {
+  return value === 'ascending' || value === 'descending'
+}
+
+function readUrlState(): UrlState {
+  if (typeof window === 'undefined') {
+    return { position: '', team: '', minMinutes: '', sortCol: 'name', sortDir: 'ascending' }
+  }
   const p = new URLSearchParams(window.location.search)
+  const sort = p.get('sort')
+  const order = p.get('order')
   return {
     position: p.get('position') ?? '',
     team: p.get('team') ?? '',
     minMinutes: p.get('minMinutes') ?? '',
-    sort: (p.get('sort') ?? '') as SortColumn | '',
-    order: (p.get('order') ?? '') as SortDir | '',
+    sortCol: isSortColumn(sort) ? sort : 'name',
+    sortDir: isSortDir(order) ? order : 'ascending',
   }
 }
 
-function pushParams(params: Record<string, string>) {
+function writeUrlState(state: UrlState) {
   if (typeof window === 'undefined') return
   const p = new URLSearchParams()
-  for (const [k, v] of Object.entries(params)) {
-    if (v) p.set(k, v)
-  }
+  if (state.position) p.set('position', state.position)
+  if (state.team) p.set('team', state.team)
+  if (state.minMinutes) p.set('minMinutes', state.minMinutes)
+  if (state.sortCol !== 'name') p.set('sort', state.sortCol)
+  if (state.sortDir !== 'ascending') p.set('order', state.sortDir)
   const search = p.toString()
   window.history.replaceState(null, '', search ? `?${search}` : window.location.pathname)
 }
 
-function fmt(n: number) {
-  return n.toFixed(2)
+function comparePlayers(a: PlayerRow, b: PlayerRow, col: SortColumn): number {
+  const av = a[col]
+  const bv = b[col]
+  if (av === bv) return 0
+  if (av === null) return -1
+  if (bv === null) return 1
+  if (typeof av === 'string' && typeof bv === 'string') return av.localeCompare(bv)
+  if (typeof av === 'number' && typeof bv === 'number') return av - bv
+  return 0
 }
-
-const COLUMNS: { key: SortColumn; label: string }[] = [
-  { key: 'name', label: 'Player' },
-  { key: 'teamName', label: 'Team' },
-  { key: 'position', label: 'Position' },
-  { key: 'minutes', label: 'Mins' },
-  { key: 'xGPer90', label: 'xG' },
-  { key: 'xAPer90', label: 'xA' },
-  { key: 'goalsPer90', label: 'Goals' },
-  { key: 'keyPassesPer90', label: 'Key Passes' },
-  { key: 'tacklesPer90', label: 'Tackles' },
-]
 
 const styles = stylex.create({
   container: {
@@ -69,163 +91,7 @@ const styles = stylex.create({
     color: colors.textPrimary,
     marginBottom: spacing.s5,
   },
-  filters: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: spacing.s4,
-    marginBottom: spacing.s5,
-    alignItems: 'flex-end',
-  },
-  filterGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.s1,
-  },
-  label: {
-    fontFamily: fonts.body,
-    fontSize: '12px',
-    fontWeight: 600,
-    color: colors.textSecondary,
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase',
-  },
-  select: {
-    height: '40px',
-    paddingInline: spacing.s3,
-    borderRadius: rounded.sm,
-    border: `1px solid ${colors.border}`,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    fontFamily: fonts.body,
-    fontSize: '14px',
-    outline: 'none',
-    cursor: 'pointer',
-    minWidth: '160px',
-    ':focus-visible': {
-      borderColor: colors.secondary,
-      boxShadow: shadow.focus,
-    },
-  },
-  numberInput: {
-    height: '40px',
-    paddingInline: spacing.s3,
-    borderRadius: rounded.sm,
-    border: `1px solid ${colors.border}`,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-    fontFamily: fonts.body,
-    fontSize: '14px',
-    outline: 'none',
-    width: '120px',
-    ':focus-visible': {
-      borderColor: colors.secondary,
-      boxShadow: shadow.focus,
-    },
-  },
-  tableWrapper: {
-    overflowX: 'auto',
-    borderRadius: rounded.lg,
-    boxShadow: shadow.e1,
-    border: `1px solid ${colors.borderSubtle}`,
-    backgroundColor: colors.surface,
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontFamily: fonts.body,
-    fontSize: '14px',
-  },
-  th: {
-    backgroundColor: colors.primary,
-    color: colors.onDark,
-    padding: `${spacing.s3} ${spacing.s4}`,
-    textAlign: 'left',
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    fontSize: '12px',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    userSelect: 'none',
-    ':hover': {
-      backgroundColor: colors.inverse,
-    },
-  },
-  thActive: {
-    backgroundColor: colors.inverse,
-    color: colors.secondary,
-  },
-  thCheckbox: {
-    backgroundColor: colors.primary,
-    padding: `${spacing.s3} ${spacing.s4}`,
-    width: '40px',
-  },
-  tr: {
-    borderBottom: `1px solid ${colors.borderSubtle}`,
-    ':hover': {
-      backgroundColor: colors.accentTint,
-    },
-  },
-  trSelected: {
-    backgroundColor: colors.accentTint,
-  },
-  td: {
-    padding: `${spacing.s3} ${spacing.s4}`,
-    color: colors.textPrimary,
-    whiteSpace: 'nowrap',
-  },
-  tdMuted: {
-    color: colors.textSecondary,
-  },
-  tdNumeric: {
-    fontVariantNumeric: 'tabular-nums',
-    textAlign: 'right',
-  },
-  sortIndicator: {
-    marginLeft: spacing.s1,
-    fontSize: '10px',
-  },
-  emptyState: {
-    padding: spacing.s12,
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontFamily: fonts.body,
-    fontSize: '16px',
-  },
-  compareBar: {
-    position: 'sticky',
-    bottom: '0',
-    backgroundColor: colors.primary,
-    color: colors.onDark,
-    padding: `${spacing.s4} ${spacing.s6}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.s4,
-    boxShadow: shadow.e3,
-  },
-  compareText: {
-    fontFamily: fonts.body,
-    fontSize: '14px',
-  },
-  compareLink: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    height: '36px',
-    paddingInline: spacing.s5,
-    borderRadius: rounded.md,
-    backgroundColor: colors.secondary,
-    color: '#04263A',
-    fontFamily: fonts.body,
-    fontSize: '14px',
-    fontWeight: 700,
-    textDecoration: 'none',
-    ':hover': {
-      backgroundColor: colors.accentHover,
-      color: colors.onDark,
-    },
-  },
-  loading: {
+  status: {
     padding: spacing.s12,
     textAlign: 'center',
     color: colors.textMuted,
@@ -240,41 +106,42 @@ const styles = stylex.create({
 })
 
 export function PlayerBrowser() {
-  const initial = readParams()
-  const [allPlayers, setAllPlayers] = useState<PlayerRow[]>([])
+  const [allPlayers, setAllPlayers] = useState<readonly PlayerRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const [position, setPosition] = useState(initial.position ?? '')
-  const [team, setTeam] = useState(initial.team ?? '')
-  const [minMinutes, setMinMinutes] = useState(initial.minMinutes ?? '')
-  const [sortCol, setSortCol] = useState<SortColumn>(
-    (initial.sort as SortColumn) || 'name'
-  )
-  const [sortDir, setSortDir] = useState<SortDir>(
-    (initial.order as SortDir) || 'ascending'
-  )
-  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const initial = useMemo(readUrlState, [])
+  const [position, setPosition] = useState(initial.position)
+  const [team, setTeam] = useState(initial.team)
+  const [minMinutes, setMinMinutes] = useState(initial.minMinutes)
+  const [sortCol, setSortCol] = useState<SortColumn>(initial.sortCol)
+  const [sortDir, setSortDir] = useState<SortDir>(initial.sortDir)
+  const [selectedIds, setSelectedIds] = useState<readonly number[]>([])
 
   useEffect(() => {
-    setLoading(true)
+    let cancelled = false
     fetch('/api/players')
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         return res.json() as Promise<{ players: PlayerRow[] }>
       })
       .then(({ players }) => {
+        if (cancelled) return
         setAllPlayers(players)
         setLoading(false)
       })
       .catch((err: unknown) => {
+        if (cancelled) return
         setError(err instanceof Error ? err.message : 'Failed to load players')
         setLoading(false)
       })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
-    pushParams({ position, team, minMinutes, sort: sortCol, order: sortDir })
+    writeUrlState({ position, team, minMinutes, sortCol, sortDir })
   }, [position, team, minMinutes, sortCol, sortDir])
 
   const positions = useMemo(() => {
@@ -292,26 +159,23 @@ export function PlayerBrowser() {
   }, [allPlayers])
 
   const filtered = useMemo(() => {
-    let rows = allPlayers
-    if (position) rows = rows.filter((r) => r.position === position)
-    if (team) rows = rows.filter((r) => r.teamName === team)
-    const min = parseInt(minMinutes, 10)
-    if (!isNaN(min) && min > 0) rows = rows.filter((r) => r.minutes >= min)
-    return rows
+    const min = Number.parseInt(minMinutes, 10)
+    const hasMin = Number.isFinite(min) && min > 0
+    return allPlayers.filter((r) => {
+      if (position && r.position !== position) return false
+      if (team && r.teamName !== team) return false
+      if (hasMin && r.minutes < min) return false
+      return true
+    })
   }, [allPlayers, position, team, minMinutes])
 
   const sorted = useMemo(() => {
-    return [...filtered].sort((a, b) => {
-      const av = a[sortCol]
-      const bv = b[sortCol]
-      const cmp =
-        av === null ? -1
-        : bv === null ? 1
-        : typeof av === 'string' && typeof bv === 'string'
-          ? av.localeCompare(bv)
-          : (av as number) - (bv as number)
+    const copy = [...filtered]
+    copy.sort((a, b) => {
+      const cmp = comparePlayers(a, b, sortCol)
       return sortDir === 'descending' ? -cmp : cmp
     })
+    return copy
   }, [filtered, sortCol, sortDir])
 
   function handleHeaderClick(col: SortColumn) {
@@ -326,13 +190,13 @@ export function PlayerBrowser() {
   function handleSelect(id: number) {
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id)
-      if (prev.length >= 2) return prev
+      if (prev.length >= MAX_SELECTED) return prev
       return [...prev, id]
     })
   }
 
   if (loading) {
-    return <div {...stylex.props(styles.loading)}>Loading players…</div>
+    return <div {...stylex.props(styles.status)}>Loading players…</div>
   }
 
   if (error) {
@@ -343,137 +207,28 @@ export function PlayerBrowser() {
     <div {...stylex.props(styles.container)}>
       <h1 {...stylex.props(styles.heading)}>Player Browser</h1>
 
-      <div {...stylex.props(styles.filters)}>
-        <div {...stylex.props(styles.filterGroup)}>
-          <label {...stylex.props(styles.label)} htmlFor="filter-position">
-            Position
-          </label>
-          <select
-            id="filter-position"
-            aria-label="Position"
-            {...stylex.props(styles.select)}
-            value={position}
-            onChange={(e) => setPosition(e.target.value)}
-          >
-            <option value="">All positions</option>
-            {positions.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+      <PlayerFilters
+        positions={positions}
+        teams={teams}
+        position={position}
+        team={team}
+        minMinutes={minMinutes}
+        onPositionChange={setPosition}
+        onTeamChange={setTeam}
+        onMinMinutesChange={setMinMinutes}
+      />
 
-        <div {...stylex.props(styles.filterGroup)}>
-          <label {...stylex.props(styles.label)} htmlFor="filter-team">
-            Team
-          </label>
-          <select
-            id="filter-team"
-            aria-label="Team"
-            {...stylex.props(styles.select)}
-            value={team}
-            onChange={(e) => setTeam(e.target.value)}
-          >
-            <option value="">All teams</option>
-            {teams.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
+      <PlayerTable
+        players={sorted}
+        sortCol={sortCol}
+        sortDir={sortDir}
+        selectedIds={selectedIds}
+        canSelectMore={selectedIds.length < MAX_SELECTED}
+        onHeaderClick={handleHeaderClick}
+        onSelect={handleSelect}
+      />
 
-        <div {...stylex.props(styles.filterGroup)}>
-          <label {...stylex.props(styles.label)} htmlFor="filter-min-minutes">
-            Min. Minutes
-          </label>
-          <input
-            id="filter-min-minutes"
-            aria-label="Min. Minutes"
-            type="number"
-            min={0}
-            placeholder="e.g. 900"
-            {...stylex.props(styles.numberInput)}
-            value={minMinutes}
-            onChange={(e) => setMinMinutes(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div {...stylex.props(styles.tableWrapper)}>
-        <table {...stylex.props(styles.table)}>
-          <thead>
-            <tr>
-              <th {...stylex.props(styles.thCheckbox)} />
-              {COLUMNS.map(({ key, label }) => (
-                <th
-                  key={key}
-                  role="columnheader"
-                  aria-sort={sortCol === key ? sortDir : undefined}
-                  {...stylex.props(styles.th, sortCol === key && styles.thActive)}
-                  onClick={() => handleHeaderClick(key)}
-                >
-                  {label}
-                  {sortCol === key && (
-                    <span {...stylex.props(styles.sortIndicator)} aria-hidden>
-                      {sortDir === 'descending' ? '▼' : '▲'}
-                    </span>
-                  )}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.length === 0 ? (
-              <tr>
-                <td colSpan={COLUMNS.length + 1} {...stylex.props(styles.emptyState)}>
-                  No players match the active filters
-                </td>
-              </tr>
-            ) : (
-              sorted.map((player) => {
-                const selected = selectedIds.includes(player.playerId)
-                return (
-                  <tr
-                    key={player.playerId}
-                    {...stylex.props(styles.tr, selected && styles.trSelected)}
-                  >
-                    <td {...stylex.props(styles.td)}>
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${player.name}`}
-                        checked={selected}
-                        onChange={() => handleSelect(player.playerId)}
-                        disabled={!selected && selectedIds.length >= 2}
-                      />
-                    </td>
-                    <td {...stylex.props(styles.td)}>{player.name}</td>
-                    <td {...stylex.props(styles.td, styles.tdMuted)}>{player.teamName}</td>
-                    <td {...stylex.props(styles.td, styles.tdMuted)}>{player.position ?? '—'}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{player.minutes}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{fmt(player.xGPer90)}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{fmt(player.xAPer90)}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{fmt(player.goalsPer90)}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{fmt(player.keyPassesPer90)}</td>
-                    <td {...stylex.props(styles.td, styles.tdNumeric)}>{fmt(player.tacklesPer90)}</td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {selectedIds.length === 2 && (
-        <div {...stylex.props(styles.compareBar)}>
-          <span {...stylex.props(styles.compareText)}>
-            2 players selected
-          </span>
-          <a
-            href={`/compare?ids=${selectedIds.join(',')}`}
-            {...stylex.props(styles.compareLink)}
-          >
-            Compare players
-          </a>
-        </div>
-      )}
+      {selectedIds.length === MAX_SELECTED && <CompareBar selectedIds={selectedIds} />}
     </div>
   )
 }
