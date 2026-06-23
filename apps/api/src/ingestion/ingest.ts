@@ -1,6 +1,6 @@
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { Effect } from 'effect'
+import { Data, Effect } from 'effect'
 import { sql } from 'drizzle-orm'
 import {
   competitions,
@@ -21,7 +21,7 @@ import {
   computeMatchMinutes,
   computePer90,
 } from './aggregation.js'
-import type { RawPlayerMatchStats, PlayerRawSeasonStats } from './aggregation.js'
+import type { PlayerRawSeasonStats } from './aggregation.js'
 import {
   buildCompetitionRow,
   buildTeamRow,
@@ -30,23 +30,39 @@ import {
   buildPlayerSeasonStatsRow,
 } from './transform.js'
 
+class FetchError extends Data.TaggedError('FetchError')<{
+  readonly url: string
+  readonly cause: unknown
+}> {}
+
+class DbError extends Data.TaggedError('DbError')<{
+  readonly cause: unknown
+}> {}
+
+class CompetitionNotFoundError extends Data.TaggedError(
+  'CompetitionNotFoundError',
+)<{
+  readonly competitionId: number
+  readonly seasonId: number
+}> {}
+
 const db = drizzle(postgres(process.env['DATABASE_URL'] ?? ''))
 
-function fetchJson<T>(url: string): Effect.Effect<T, Error> {
+function fetchJson<T>(url: string): Effect.Effect<T, FetchError> {
   return Effect.tryPromise({
     try: () =>
       fetch(url).then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${url}`)
         return r.json() as Promise<T>
       }),
-    catch: (e) => (e instanceof Error ? e : new Error(String(e))),
+    catch: (cause) => new FetchError({ url, cause }),
   })
 }
 
-function dbRun<T>(promise: Promise<T>): Effect.Effect<T, Error> {
+function dbRun<T>(promise: Promise<T>): Effect.Effect<T, DbError> {
   return Effect.tryPromise({
     try: () => promise,
-    catch: (e) => (e instanceof Error ? e : new Error(String(e))),
+    catch: (cause) => new DbError({ cause }),
   })
 }
 
@@ -61,7 +77,10 @@ const program = Effect.gen(function* () {
   )
   if (!comp) {
     yield* Effect.fail(
-      new Error(`PL 2015/16 not found in competitions.json`),
+      new CompetitionNotFoundError({
+        competitionId: PL_COMPETITION_ID,
+        seasonId: PL_SEASON_ID,
+      }),
     )
     return
   }
@@ -144,7 +163,7 @@ const program = Effect.gen(function* () {
       const eventRows = events.map((e) => ({
         eventId: e.id,
         matchId: match.match_id,
-        data: e as unknown as Record<string, unknown>,
+        data: e,
       }))
       // Insert in chunks to avoid parameter limits
       for (let j = 0; j < eventRows.length; j += 500) {

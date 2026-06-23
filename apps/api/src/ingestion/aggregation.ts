@@ -1,4 +1,3 @@
-import { Effect } from 'effect'
 import type { SbEvent } from './types.js'
 
 export interface RawPlayerMatchStats {
@@ -192,14 +191,6 @@ export function parseMatchEvents(
 }
 
 /**
- * Effect-wrapped version of parseMatchEvents for use in ingestion pipelines.
- */
-export const aggregateMatchEvents = (
-  events: ReadonlyArray<SbEvent>,
-): Effect.Effect<Map<number, RawPlayerMatchStats>> =>
-  Effect.sync(() => parseMatchEvents(events))
-
-/**
  * Compute per-90 normalised values from accumulated raw season stats.
  * passCompletionPct is a ratio, not divided by minutes.
  */
@@ -229,74 +220,6 @@ export function computePer90(raw: PlayerRawSeasonStats): PlayerPer90Stats {
     ballRecoveries: p90(raw.ballRecoveries),
     pressures: p90(raw.pressures),
   }
-}
-
-/**
- * Accumulate per-match stats into a season total, keyed by playerId.
- * Minutes and appearances must be supplied externally (computed from lineups/subs).
- */
-export function accumulateSeasonStats(
-  allMatchStats: ReadonlyArray<
-    Map<number, RawPlayerMatchStats> & { minutesMap: Map<number, number> }
-  >,
-): Map<number, PlayerRawSeasonStats> {
-  const season = new Map<number, PlayerRawSeasonStats>()
-
-  for (const matchResult of allMatchStats) {
-    const minutesMap = matchResult.minutesMap
-    for (const [playerId, m] of matchResult) {
-      let s = season.get(playerId)
-      if (!s) {
-        s = {
-          playerId: m.playerId,
-          teamId: m.teamId,
-          position: m.position,
-          minutes: 0,
-          appearances: 0,
-          goals: 0,
-          assists: 0,
-          xG: 0,
-          xA: 0,
-          shots: 0,
-          shotsOnTarget: 0,
-          keyPasses: 0,
-          passesAttempted: 0,
-          passesCompleted: 0,
-          progressivePasses: 0,
-          carries: 0,
-          progressiveCarries: 0,
-          successfulDribbles: 0,
-          tackles: 0,
-          interceptions: 0,
-          ballRecoveries: 0,
-          pressures: 0,
-        }
-        season.set(playerId, s)
-      }
-      const mins = minutesMap.get(playerId) ?? 0
-      s.minutes += mins
-      s.appearances++
-      s.goals += m.goals
-      s.assists += m.assists
-      s.xG += m.xG
-      s.xA += m.xA
-      s.shots += m.shots
-      s.shotsOnTarget += m.shotsOnTarget
-      s.keyPasses += m.keyPasses
-      s.passesAttempted += m.passesAttempted
-      s.passesCompleted += m.passesCompleted
-      s.progressivePasses += m.progressivePasses
-      s.carries += m.carries
-      s.progressiveCarries += m.progressiveCarries
-      s.successfulDribbles += m.successfulDribbles
-      s.tackles += m.tackles
-      s.interceptions += m.interceptions
-      s.ballRecoveries += m.ballRecoveries
-      s.pressures += m.pressures
-    }
-  }
-
-  return season
 }
 
 /**
