@@ -11,9 +11,16 @@ const styles = stylex.create({
       default: shadow.e1,
       ':hover': shadow.e2,
     },
+    transform: {
+      default: 'none',
+      ':hover': 'translateY(-2px)',
+    },
     transition: 'box-shadow 0.15s ease, transform 0.15s ease',
     '@media (prefers-reduced-motion: reduce)': {
       transition: 'none',
+      ':hover': {
+        transform: 'none',
+      },
     },
   },
 })

@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { colors, fonts, spacing, shadow } from '../../tokens.stylex.js'
+import { colors, fonts, spacing, rounded, shadow } from '../../tokens.stylex.js'
 
 const styles = stylex.create({
   header: {
@@ -20,7 +20,7 @@ const styles = stylex.create({
     textDecoration: 'none',
     letterSpacing: '-0.02em',
     outline: 'none',
-    borderRadius: '4px',
+    borderRadius: rounded.sm,
     ':focus-visible': {
       boxShadow: shadow.focus,
     },

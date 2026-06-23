@@ -19,21 +19,22 @@ const styles = stylex.create({
     border: 'none',
     outline: 'none',
     textDecoration: 'none',
-    transition: 'background-color 0.15s ease, box-shadow 0.15s ease',
+    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease',
     boxShadow: {
       default: 'none',
       ':focus-visible': shadow.focus,
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-      transition: 'none',
     },
     ':disabled': {
       opacity: 0.5,
       cursor: 'not-allowed',
     },
     ':active': {
-      transform: {
-        default: 'none',
+      transform: 'translateY(1px)',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+      ':active': {
+        transform: 'none',
       },
     },
   },
