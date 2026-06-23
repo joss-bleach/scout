@@ -1,5 +1,5 @@
 import * as stylex from '@stylexjs/stylex'
-import { colors, fonts, spacing } from '../../tokens.stylex.js'
+import { colors, fonts, rounded, shadow, spacing } from '../../tokens.stylex.js'
 
 const styles = stylex.create({
   footer: {
@@ -9,16 +9,19 @@ const styles = stylex.create({
     fontSize: '12px',
     paddingInline: spacing.s6,
     paddingBlock: spacing.s4,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.s1,
+    textAlign: 'center',
   },
   link: {
     color: colors.secondary,
-    textDecoration: 'none',
-    ':hover': {
-      textDecoration: 'underline',
+    textDecoration: {
+      default: 'none',
+      ':hover': 'underline',
+    },
+    borderRadius: rounded.sm,
+    outline: 'none',
+    boxShadow: {
+      default: 'none',
+      ':focus-visible': shadow.focus,
     },
   },
 })
@@ -26,7 +29,7 @@ const styles = stylex.create({
 export function Footer() {
   return (
     <footer {...stylex.props(styles.footer)}>
-      <span>Data provided by </span>
+      Data provided by{' '}
       <a
         href="https://github.com/statsbomb/open-data/blob/master/LICENSE.pdf"
         target="_blank"
@@ -35,7 +38,7 @@ export function Footer() {
       >
         StatsBomb
       </a>
-      <span> under the Open Data licence.</span>
+      {' '}under the Open Data licence.
     </footer>
   )
 }

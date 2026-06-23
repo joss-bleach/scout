@@ -1,12 +1,12 @@
 import * as stylex from '@stylexjs/stylex'
-import { colors, fonts, rounded, shadow } from '../tokens.stylex.js'
+import { colors, fonts, rounded, shadow, spacing } from '../tokens.stylex.js'
 
 const styles = stylex.create({
   input: {
     display: 'block',
     width: '100%',
     height: '44px',
-    paddingInline: '12px',
+    paddingInline: spacing.s3,
     borderRadius: rounded.sm,
     border: `1px solid ${colors.border}`,
     backgroundColor: colors.surface,
@@ -29,7 +29,7 @@ const styles = stylex.create({
   },
 })
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>
 
 export function Input(props: InputProps) {
   return <input type="text" {...stylex.props(styles.input)} {...props} />

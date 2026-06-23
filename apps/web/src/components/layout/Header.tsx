@@ -21,8 +21,10 @@ const styles = stylex.create({
     letterSpacing: '-0.02em',
     outline: 'none',
     borderRadius: rounded.sm,
-    ':focus-visible': {
-      boxShadow: shadow.focus,
+    touchAction: 'manipulation',
+    boxShadow: {
+      default: 'none',
+      ':focus-visible': shadow.focus,
     },
   },
   nav: {

@@ -19,6 +19,7 @@ const styles = stylex.create({
     border: 'none',
     outline: 'none',
     textDecoration: 'none',
+    touchAction: 'manipulation',
     transition: 'background-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease',
     boxShadow: {
       default: 'none',

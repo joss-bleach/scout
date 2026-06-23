@@ -28,7 +28,7 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toBeDisabled()
   })
 
-  it('calls onClick handler when clicked', async () => {
+  it('calls onClick handler when clicked', () => {
     let clicked = false
     render(<Button onClick={() => { clicked = true }}>Click</Button>)
     screen.getByRole('button').click()
